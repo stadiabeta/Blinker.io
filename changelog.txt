@@ -1,0 +1,2 @@
+V1.0.0 - - - 
+Take a Hit, Randomized Timers, Blinker Mode, Settings, Longest hit Count, Total Hits Count, SFX, Animations, And More!

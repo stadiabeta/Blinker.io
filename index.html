@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blinker.io</title>
+    <meta name="theme-color" content="#22c55e">
+    <meta name="description" content="A precision timing game where you test your reflexes with randomized hits, blinker mode, and timed challenges.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Blinker.io">
+    <meta name="apple-mobile-web-app-status-bar" content="default">
+    <link rel="icon" type="image/x-icon" href="resources/favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="resources/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Play:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a1f0f;
+            --text-primary: #f0fdf4;
+            --text-secondary: #86efac;
+            --accent-green: #22c55e;
+            --accent-glow: rgba(34, 197, 94, 0.5);
+            --accent-lime: #84cc16;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Play', 'Orbitron', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-image: url('resources/backgrounds/desktop.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        /* Mobile background for screens smaller than 768px */
+        @media (max-width: 768px) {
+            body {
+                background-image: url('resources/backgrounds/mobile.png');
+            }
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .green-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(16, 185, 129, 0.6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .green-flash.active {
+            opacity: 1;
+        }
+
+        .green-filter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(ellipse at 30% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 30%, rgba(16, 185, 129, 0.25) 0%, transparent 35%),
+                radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 20% 20%, rgba(10, 150, 100, 0.25) 0%, transparent 30%);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 999;
+            animation: smokeFlow 6s ease-in-out infinite;
+        }
+
+        .green-filter.active {
+            opacity: 1;
+        }
+
+        @keyframes smokeFlow {
+            0%, 100% { 
+                background: 
+                    radial-gradient(ellipse at 30% 50%, rgba(16, 185, 129, 0.3) 0%, transparent 40%),
+                    radial-gradient(ellipse at 70% 30%, rgba(16, 185, 129, 0.25) 0%, transparent 35%),
+                    radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+                    radial-gradient(ellipse at 20% 20%, rgba(10, 150, 100, 0.25) 0%, transparent 30%);
+            }
+            50% { 
+                background: 
+                    radial-gradient(ellipse at 40% 60%, rgba(16, 185, 129, 0.35) 0%, transparent 45%),
+                    radial-gradient(ellipse at 60% 40%, rgba(16, 185, 129, 0.3) 0%, transparent 40%),
+                    radial-gradient(ellipse at 50% 70%, rgba(16, 185, 129, 0.25) 0%, transparent 50%),
+                    radial-gradient(ellipse at 30% 10%, rgba(10, 150, 100, 0.2) 0%, transparent 35%);
+            }
+        }
+
+        /* Header Styles */
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-lime));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .settings-icon {
+            width: 52px;
+            height: 52px;
+            filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.3));
+            transition: filter 0.2s ease;
+        }
+
+        .settings-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .settings-btn:hover .settings-icon {
+            filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.6));
+        }
+
+        .settings-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Stats Badge */
+        .stats-container {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stats-container.visible {
+            display: flex;
+        }
+
+        .stat-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .pop {
+            animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Visualizer Circle */
+        .visualizer-wrapper {
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #1f4d1f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .orb::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        /* Orb Animations */
+        .orb.active {
+            background: radial-gradient(circle, var(--accent-green), var(--accent-lime));
+            box-shadow: 0 0 30px var(--accent-glow), inset 0 0 15px rgba(255,255,255,0.5);
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        .orb.active::after {
+            border-color: rgba(255, 255, 255, 0.4);
+            animation: ripple 1.5s infinite;
+        }
+
+        .orb.blink {
+            background: radial-gradient(circle, var(--accent-blue), var(--accent-purple));
+            box-shadow: 0 0 40px var(--accent-glow);
+            transform: scale(1.15);
+        }
+
+        .orb.pulse-once {
+            animation: pulse-once 0.5s ease;
+        }
+
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            padding: 18px 24px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-lime));
+            color: #000;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+            filter: brightness(1.15);
+        }
+
+        .btn-primary.recording {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-secondary {
+            background: #0b4604;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgb(1, 34, 12);
+            border-color: rgba(11, 192, 50, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .settings-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: rgba(10, 31, 15, 0.95);
+            border: 2px solid rgba(34, 197, 94, 0.5);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-lime));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .close-modal:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-stat-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .modal-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .modal-stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .modal-version {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(34, 197, 94, 0.2);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Keyframes */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        @keyframes pulse-once {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="top-bar">
+            <h1>Blinker.io</h1>
+            <button class="settings-btn" id="settingsBtn" title="Open Settings">
+                <img src="resources/icons/settings.png" alt="Settings" class="settings-icon">
+            </button>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stats-label">Total Hits</span>
+                <span class="stat-value" id="hitCounter">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stats-label">Longest Hit</span>
+                <span class="stat-value" id="longestHit">0.00s</span>
+            </div>
+        </div>
+
+        <div class="visualizer-wrapper">
+            <div class="orb" id="orb">
+                <div class="timer-display" id="timerDisplay">0.00s</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="mainHitBtn">Take a Hit (Hold or Click)</button>
+            <button class="btn btn-secondary" id="randomHitBtn">Randomized Timed Hit</button>
+            <button class="btn btn-secondary" id="blinkerBtn">Blinker Mode</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-modal" id="closeModalBtn">✕</button>
+            </div>
+            
+            <div class="modal-stat-box">
+                <span class="modal-stat-label">Total Hits</span>
+                <span class="modal-stat-value" id="modalHitCounter">0</span>
+            </div>
+
+            <div class="modal-stat-box">
+                <span class="modal-stat-label">Longest Hit</span>
+                <span class="modal-stat-value" id="modalLongestHit">0.00s</span>
+            </div>
+
+            <div class="modal-version">
+                Version: <span id="versionDisplay">1.0.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { Animations } from './vfx/animations.js';
+        import { SFX } from './sfx/sfx.js';
+        import { Settings } from './scripts/settings.js';
+
+        // DOM Elements
+        const orb = document.getElementById('orb');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const hitCounter = document.getElementById('hitCounter');
+        const longestHit = document.getElementById('longestHit');
+        const mainHitBtn = document.getElementById('mainHitBtn');
+        const randomHitBtn = document.getElementById('randomHitBtn');
+        const blinkerBtn = document.getElementById('blinkerBtn');
+
+        // Game State
+        let hits = 0;
+        let longestHitTime = 0;
+        let startTime;
+        let timerInterval;
+        let isHitActive = false;
+        let isRandomActive = false;
+        let isBlinkerActive = false;
+
+        // --- Functions ---
+
+        function saveProgress() {
+            localStorage.setItem('blinker-hits', hits);
+            localStorage.setItem('blinker-longest', longestHitTime);
+        }
+
+        function loadProgress() {
+            const savedHits = localStorage.getItem('blinker-hits');
+            const savedLongest = localStorage.getItem('blinker-longest');
+            
+            if (savedHits !== null) {
+                hits = parseInt(savedHits);
+                hitCounter.textContent = hits;
+            }
+            
+            if (savedLongest !== null) {
+                longestHitTime = parseFloat(savedLongest);
+                longestHit.textContent = longestHitTime.toFixed(2) + 's';
+            }
+        }
+
+        function updateCounter() {
+            hits++;
+            hitCounter.textContent = hits;
+            Animations.popCounter(hitCounter);
+            Settings.updateStatsInModal(hits, longestHitTime);
+            saveProgress();
+        }
+
+        function updateLongestHit(timeInSeconds) {
+            if (timeInSeconds > longestHitTime) {
+                longestHitTime = timeInSeconds;
+                longestHit.textContent = timeInSeconds.toFixed(2) + 's';
+                Animations.popCounter(longestHit);
+                Settings.updateStatsInModal(hits, longestHitTime);
+                saveProgress();
+            }
+        }
+
+        function startTimer() {
+            Animations.startGreenFilter();
+            SFX.startSmokeLoop();
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                timerDisplay.textContent = `${elapsedTime}s`;
+            }, 10);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            Animations.stopGreenFilter();
+            SFX.stopSmokeLoop();
+            SFX.playExhale();
+        }
+
+        function startHit() {
+            if (isHitActive || isRandomActive || isBlinkerActive) return;
+            
+            isHitActive = true;
+            Animations.activateOrb(orb);
+            mainHitBtn.classList.add('recording');
+            mainHitBtn.textContent = 'Release to Finish Hit';
+            randomHitBtn.disabled = true;
+            blinkerBtn.disabled = true;
+            
+            startTimer();
+        }
+
+        function endHit() {
+            if (!isHitActive) return;
+            
+            isHitActive = false;
+            Animations.deactivateOrb(orb);
+            mainHitBtn.classList.remove('recording');
+            mainHitBtn.textContent = 'Take a Hit (Hold or Click)';
+            randomHitBtn.disabled = false;
+            blinkerBtn.disabled = false;
+            
+            stopTimer();
+            const hitDuration = parseFloat(timerDisplay.textContent);
+            updateCounter();
+            updateLongestHit(hitDuration);
+        }
+
+        function triggerRandomHit() {
+            if (isHitActive || isRandomActive || isBlinkerActive) return;
+
+            isRandomActive = true;
+            mainHitBtn.disabled = true;
+            randomHitBtn.disabled = true;
+            blinkerBtn.disabled = true;
+            randomHitBtn.textContent = 'Randomizing...';
+            
+            // Generate a random duration between 1.5 and 4.0 seconds
+            const randomDuration = (Math.random() * (4.0 - 1.5) + 1.5).toFixed(2);
+            
+            Animations.activateOrb(orb);
+            startTimer();
+
+            setTimeout(() => {
+                stopTimer();
+                timerDisplay.textContent = `${randomDuration}s`;
+                Animations.deactivateOrb(orb);
+                
+                updateCounter();
+                updateLongestHit(parseFloat(randomDuration));
+
+                // Reset buttons
+                isRandomActive = false;
+                mainHitBtn.disabled = false;
+                randomHitBtn.disabled = false;
+                blinkerBtn.disabled = false;
+                randomHitBtn.textContent = 'Randomized Timed Hit';
+            }, randomDuration * 1000);
+        }
+
+        async function triggerBlinkerMode() {
+            if (isHitActive || isRandomActive || isBlinkerActive) return;
+
+            isBlinkerActive = true;
+            mainHitBtn.disabled = true;
+            randomHitBtn.disabled = true;
+            blinkerBtn.disabled = true;
+            blinkerBtn.textContent = 'Blinking...';
+
+            // Generate a random blink duration between 8 and 12 seconds
+            const blinkDuration = Math.random() * (12 - 8) + 8;
+
+            Animations.activateOrb(orb);
+            startTimer();
+
+            // Wait for the randomized blink duration
+            await new Promise(resolve => setTimeout(resolve, blinkDuration * 1000));
+
+            stopTimer();
+            timerDisplay.textContent = `${blinkDuration.toFixed(2)}s`;
+
+            // Trigger the blink animation
+            await Animations.triggerBlink(orb, 1);
+            
+            updateCounter();
+            updateLongestHit(blinkDuration);
+
+            // Reset buttons
+            isBlinkerActive = false;
+            mainHitBtn.disabled = false;
+            randomHitBtn.disabled = false;
+            blinkerBtn.disabled = false;
+            blinkerBtn.textContent = 'Blinker Mode';
+
+            Animations.deactivateOrb(orb);
+            timerDisplay.textContent = '0.00s';
+        }
+
+        // --- Event Listeners ---
+
+        // Desktop Mouse Events for Hold
+        mainHitBtn.addEventListener('mousedown', startHit);
+        window.addEventListener('mouseup', endHit);
+
+        // Mobile Touch Events for Hold
+        mainHitBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startHit();
+        });
+        window.addEventListener('touchend', endHit);
+
+        // Randomized Button
+        randomHitBtn.addEventListener('click', triggerRandomHit);
+
+        // Blinker Button
+        blinkerBtn.addEventListener('click', triggerBlinkerMode);
+
+        // Load saved progress on page load
+        loadProgress();
+
+        // Initialize sound effects
+        SFX.init();
+
+        // Initialize settings modal
+        Settings.init();
+        // Update modal with initial stats
+        Settings.updateStatsInModal(hits, longestHitTime);
+    </script>
+</body>
+</html>
