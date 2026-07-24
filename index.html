@@ -533,6 +533,7 @@
         import { Animations } from './vfx/animations.js';
         import { SFX } from './sfx/sfx.js';
         import { Settings } from './scripts/settings.js';
+        import { FirstClick } from './scripts/firstClick.js';
 
         // DOM Elements
         const orb = document.getElementById('orb');
@@ -732,6 +733,7 @@
 
         // Initialize sound effects
         SFX.init();
+        FirstClick.init(SFX);
 
         // Initialize settings modal
         Settings.init();

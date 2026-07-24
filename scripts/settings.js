@@ -2,7 +2,7 @@
 
 export const Settings = {
     modalOpen: false,
-    version: '1.0.0',
+    version: '1.0.1',
 
     init() {
         const settingsBtn = document.getElementById('settingsBtn');

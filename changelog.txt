@@ -1,2 +1,5 @@
+V1.0.1 - - - 
+Bug Fixes to Background Music.
+
 V1.0.0 - - - 
 Take a Hit, Randomized Timers, Blinker Mode, Settings, Longest hit Count, Total Hits Count, SFX, Animations, And More!
