@@ -1,8 +1,11 @@
+V1.2.1 - - - 
+New Soundeffects. Leveling System With XP.
+
 V1.1.1 - - - 
-Blinker Count Added, Total Playtime stat added,
+Blinker Count Added. Total Playtime stat added.
 
 V1.0.1 - - - 
 Bug Fixes to Background Music.
 
 V1.0.0 - - - 
-Take a Hit, Randomized Timers, Blinker Mode, Settings, Longest hit Count, Total Hits Count, SFX, Animations, And More!
+Take a Hit. Randomized Timers. Blinker Mode. Settings. Longest hit Count. Total Hits Count. SFX. Animations. And More!

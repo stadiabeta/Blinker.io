@@ -2,9 +2,10 @@
 
 export const Settings = {
     modalOpen: false,
-    version: '1.1.1',
+    version: '1.2.1',
 
-    init() {
+    init(sound) {
+        this.sound = sound;
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsModal = document.getElementById('settingsModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -18,6 +19,7 @@ export const Settings = {
 
         // Open modal
         settingsBtn.addEventListener('click', () => {
+            this.sound?.playSettingsClick();
             this.openModal();
         });
 

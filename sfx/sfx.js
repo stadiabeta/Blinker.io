@@ -6,6 +6,8 @@ export const SFX = {
     smokeLoop: null,
     exhale: null,
 
+    clickSound: null,
+
     // Initialize all audio
     init() {
         // Background music
@@ -21,6 +23,10 @@ export const SFX = {
         // Exhale sound effect
         this.exhale = new Audio('sfx/exhale.mp3');
         this.exhale.volume = 0.5;
+
+        // Settings click sound effect
+        this.clickSound = new Audio('sfx/click.mp3');
+        this.clickSound.volume = 0.4;
 
         // Auto-play background music
         this.playBgMusic();
@@ -84,6 +90,16 @@ export const SFX = {
     setSmokeSoundVolume(volume) {
         if (this.smokeLoop) {
             this.smokeLoop.volume = Math.max(0, Math.min(1, volume));
+        }
+    },
+
+    // Play settings button click sound effect
+    playSettingsClick() {
+        if (this.clickSound) {
+            this.clickSound.currentTime = 0;
+            this.clickSound.play().catch(() => {
+                console.log('Settings click sound will play on user interaction');
+            });
         }
     }
 };

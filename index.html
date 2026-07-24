@@ -188,6 +188,57 @@
             display: flex;
         }
 
+        .level-panel {
+            width: 100%;
+            max-width: 420px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .level-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .level-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .level-bar-bg {
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .level-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-lime));
+            transition: width 0.35s ease;
+        }
+
+        .level-xp-text {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
         .stat-box {
             display: inline-flex;
             align-items: center;
@@ -481,6 +532,17 @@
             </button>
         </div>
 
+        <div class="level-panel">
+            <div class="level-header">
+                <span class="level-label">Level</span>
+                <span class="level-value" id="levelValue">1</span>
+            </div>
+            <div class="level-bar-bg">
+                <div class="level-bar-fill" id="levelBarFill"></div>
+            </div>
+            <div class="level-xp-text" id="levelXpText">0 / 500 XP</div>
+        </div>
+
         <div class="stats-container">
             <div class="stat-box">
                 <span class="stats-label">Total Hits</span>
@@ -542,7 +604,7 @@
             </div>
 
             <div class="modal-version">
-                Version: <span id="versionDisplay">1.1.1</span></div>
+                Version: <span id="versionDisplay">1.2.1</span></div>
         </div>
     </div>
 
@@ -551,6 +613,7 @@
         import { SFX } from './sfx/sfx.js';
         import { Settings } from './scripts/settings.js';
         import { FirstClick } from './scripts/firstClick.js';
+        import { Levels } from './scripts/levels.js';
 
         // DOM Elements
         const orb = document.getElementById('orb');
@@ -559,6 +622,9 @@
         const longestHit = document.getElementById('longestHit');
         const playtimeDisplay = document.getElementById('playtimeDisplay');
         const blinkerCountDisplay = document.getElementById('blinkerCountDisplay');
+        const levelValue = document.getElementById('levelValue');
+        const levelBarFill = document.getElementById('levelBarFill');
+        const levelXpText = document.getElementById('levelXpText');
         const mainHitBtn = document.getElementById('mainHitBtn');
         const randomHitBtn = document.getElementById('randomHitBtn');
         const blinkerBtn = document.getElementById('blinkerBtn');
@@ -607,6 +673,7 @@
                 blinkersTaken = parseInt(savedBlinkers, 10);
             }
 
+            Levels.init();
             updateAllStatsDisplays();
         }
 
@@ -639,6 +706,7 @@
             if (blinkerCountDisplay) {
                 blinkerCountDisplay.textContent = blinkersTaken;
             }
+            Levels.updateDisplay(levelValue, levelBarFill, levelXpText);
             Settings.updateStatsInModal(hits, longestHitTime, totalPlaytimeSeconds, blinkersTaken);
         }
 
@@ -705,6 +773,7 @@
             stopTimer();
             const hitDuration = parseFloat(timerDisplay.textContent);
             updateCounter();
+            Levels.addHitXp();
             updateLongestHit(hitDuration);
             addPlaytime(hitDuration);
             updateAllStatsDisplays();
@@ -731,6 +800,7 @@
                 Animations.deactivateOrb(orb);
                 
                 updateCounter();
+                Levels.addRandomHitXp();
                 updateLongestHit(parseFloat(randomDuration));
                 addPlaytime(parseFloat(randomDuration));
                 updateAllStatsDisplays();
@@ -771,6 +841,7 @@
             incrementBlinkers();
             addPlaytime(blinkDuration);
             updateCounter();
+            Levels.addBlinkerXp();
             updateLongestHit(blinkDuration);
             updateAllStatsDisplays();
 
@@ -812,7 +883,7 @@
         FirstClick.init(SFX);
 
         // Initialize settings modal
-        Settings.init();
+        Settings.init(SFX);
         // Update modal with initial stats
         Settings.updateStatsInModal(hits, longestHitTime, totalPlaytimeSeconds, blinkersTaken);
     </script>
