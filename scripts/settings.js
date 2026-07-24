@@ -59,8 +59,21 @@ export const Settings = {
         statsContainer.classList.remove('visible');
     },
 
-    updateStatsInModal(hits, longestHit) {
+    updateStatsInModal(hits, longestHit, playtimeSeconds, blinkersTaken) {
         document.getElementById('modalHitCounter').textContent = hits;
         document.getElementById('modalLongestHit').textContent = longestHit.toFixed(2) + 's';
+
+        const modalPlaytime = document.getElementById('modalPlaytime');
+        const modalBlinkers = document.getElementById('modalBlinkers');
+
+        if (modalPlaytime) {
+            const hours = Math.floor(playtimeSeconds / 3600);
+            const minutes = Math.floor((playtimeSeconds % 3600) / 60);
+            modalPlaytime.textContent = `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+        }
+
+        if (modalBlinkers) {
+            modalBlinkers.textContent = blinkersTaken;
+        }
     }
 };

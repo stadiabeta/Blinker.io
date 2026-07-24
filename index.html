@@ -490,6 +490,14 @@
                 <span class="stats-label">Longest Hit</span>
                 <span class="stat-value" id="longestHit">0.00s</span>
             </div>
+            <div class="stat-box">
+                <span class="stats-label">Total Playtime</span>
+                <span class="stat-value" id="playtimeDisplay">0h 00m</span>
+            </div>
+            <div class="stat-box">
+                <span class="stats-label">Blinkers Taken</span>
+                <span class="stat-value" id="blinkerCountDisplay">0</span>
+            </div>
         </div>
 
         <div class="visualizer-wrapper">
@@ -523,9 +531,18 @@
                 <span class="modal-stat-value" id="modalLongestHit">0.00s</span>
             </div>
 
-            <div class="modal-version">
-                Version: <span id="versionDisplay">1.0.0</span>
+            <div class="modal-stat-box">
+                <span class="modal-stat-label">Total Playtime</span>
+                <span class="modal-stat-value" id="modalPlaytime">0h 00m</span>
             </div>
+
+            <div class="modal-stat-box">
+                <span class="modal-stat-label">Blinkers Taken</span>
+                <span class="modal-stat-value" id="modalBlinkers">0</span>
+            </div>
+
+            <div class="modal-version">
+                Version: <span id="versionDisplay">1.1.1</span></div>
         </div>
     </div>
 
@@ -540,6 +557,8 @@
         const timerDisplay = document.getElementById('timerDisplay');
         const hitCounter = document.getElementById('hitCounter');
         const longestHit = document.getElementById('longestHit');
+        const playtimeDisplay = document.getElementById('playtimeDisplay');
+        const blinkerCountDisplay = document.getElementById('blinkerCountDisplay');
         const mainHitBtn = document.getElementById('mainHitBtn');
         const randomHitBtn = document.getElementById('randomHitBtn');
         const blinkerBtn = document.getElementById('blinkerBtn');
@@ -547,6 +566,8 @@
         // Game State
         let hits = 0;
         let longestHitTime = 0;
+        let totalPlaytimeSeconds = 0;
+        let blinkersTaken = 0;
         let startTime;
         let timerInterval;
         let isHitActive = false;
@@ -558,14 +579,18 @@
         function saveProgress() {
             localStorage.setItem('blinker-hits', hits);
             localStorage.setItem('blinker-longest', longestHitTime);
+            localStorage.setItem('blinker-playtime', totalPlaytimeSeconds);
+            localStorage.setItem('blinker-count', blinkersTaken);
         }
 
         function loadProgress() {
             const savedHits = localStorage.getItem('blinker-hits');
             const savedLongest = localStorage.getItem('blinker-longest');
+            const savedPlaytime = localStorage.getItem('blinker-playtime');
+            const savedBlinkers = localStorage.getItem('blinker-count');
             
             if (savedHits !== null) {
-                hits = parseInt(savedHits);
+                hits = parseInt(savedHits, 10);
                 hitCounter.textContent = hits;
             }
             
@@ -573,13 +598,22 @@
                 longestHitTime = parseFloat(savedLongest);
                 longestHit.textContent = longestHitTime.toFixed(2) + 's';
             }
+
+            if (savedPlaytime !== null) {
+                totalPlaytimeSeconds = parseInt(savedPlaytime, 10);
+            }
+
+            if (savedBlinkers !== null) {
+                blinkersTaken = parseInt(savedBlinkers, 10);
+            }
+
+            updateAllStatsDisplays();
         }
 
         function updateCounter() {
             hits++;
             hitCounter.textContent = hits;
             Animations.popCounter(hitCounter);
-            Settings.updateStatsInModal(hits, longestHitTime);
             saveProgress();
         }
 
@@ -588,9 +622,44 @@
                 longestHitTime = timeInSeconds;
                 longestHit.textContent = timeInSeconds.toFixed(2) + 's';
                 Animations.popCounter(longestHit);
-                Settings.updateStatsInModal(hits, longestHitTime);
                 saveProgress();
             }
+        }
+
+        function formatPlaytime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+        }
+
+        function updateAllStatsDisplays() {
+            if (playtimeDisplay) {
+                playtimeDisplay.textContent = formatPlaytime(totalPlaytimeSeconds);
+            }
+            if (blinkerCountDisplay) {
+                blinkerCountDisplay.textContent = blinkersTaken;
+            }
+            Settings.updateStatsInModal(hits, longestHitTime, totalPlaytimeSeconds, blinkersTaken);
+        }
+
+        function addPlaytime(durationSeconds) {
+            totalPlaytimeSeconds += durationSeconds;
+            saveProgress();
+        }
+
+        function incrementBlinkers() {
+            blinkersTaken++;
+
+            if (blinkerCountDisplay) {
+                blinkerCountDisplay.textContent = blinkersTaken;
+            }
+
+            const modalBlinkers = document.getElementById('modalBlinkers');
+            if (modalBlinkers) {
+                modalBlinkers.textContent = blinkersTaken;
+            }
+
+            saveProgress();
         }
 
         function startTimer() {
@@ -637,6 +706,8 @@
             const hitDuration = parseFloat(timerDisplay.textContent);
             updateCounter();
             updateLongestHit(hitDuration);
+            addPlaytime(hitDuration);
+            updateAllStatsDisplays();
         }
 
         function triggerRandomHit() {
@@ -661,6 +732,8 @@
                 
                 updateCounter();
                 updateLongestHit(parseFloat(randomDuration));
+                addPlaytime(parseFloat(randomDuration));
+                updateAllStatsDisplays();
 
                 // Reset buttons
                 isRandomActive = false;
@@ -695,8 +768,11 @@
             // Trigger the blink animation
             await Animations.triggerBlink(orb, 1);
             
+            incrementBlinkers();
+            addPlaytime(blinkDuration);
             updateCounter();
             updateLongestHit(blinkDuration);
+            updateAllStatsDisplays();
 
             // Reset buttons
             isBlinkerActive = false;
@@ -738,7 +814,7 @@
         // Initialize settings modal
         Settings.init();
         // Update modal with initial stats
-        Settings.updateStatsInModal(hits, longestHitTime);
+        Settings.updateStatsInModal(hits, longestHitTime, totalPlaytimeSeconds, blinkersTaken);
     </script>
 </body>
 </html>
