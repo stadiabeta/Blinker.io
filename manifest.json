@@ -1,7 +1,7 @@
 {
   "name": "Blinker.io",
   "short_name": "Blinker.io",
-  "description": "A precision timing game where you test your reflexes with randomized hits, blinker mode, and timed challenges.",
+  "description": "Blinker.io a blinker simulator lounge, Take Blinkers, Come Puff, Get Fried, Level up, Cool VFX/SFX. Etc.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111111",

@@ -1,0 +1,17 @@
+- - - - THE BASICS - - - -
+This game is very simple on the dashboard you have three buttons. Choose the one to your liking.
+You have a settings button next to the game title. Click it to view your stats or the game version.
+When in Blinker Mode, A New Stop Blinker button will appear for the peoples who already blinked!
+
+- - - - LEVELING - - - -
+The leveling system is balanced with a 20 second cooldown for whatever hit you take on each one. You can
+take a hit then hit a blinker and get xp. But cannot spam the hit for XP. You get 20 XP for a single Hit and 200 for a Blinker.
+The XP Given increases as you level up.
+
+- - - - MORE OF A BUD SMOKER? - - - -
+If you're more of a bud smoker, Sadly we havent added the gates to those halls yet. But you surely can use the take a hit
+and randomized hit buttons for just joints!
+
+- - - - HOW TO DOWNLOAD - - - -
+If you're browsing from the website simply add the page to your homescreen on any desktop or mobile browser.
+You can look up guides on that on google. 

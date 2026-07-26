@@ -1,3 +1,7 @@
+V1.3.1 - - - 
+Added Stop button to Blinker Mode. Terms Of Service Added. Added a Consent Notice. Replaced Smoke effect with a New Green High Effect with falling leaves.
+Smoke Effects added. Code Polishings. Manifest Update. 
+
 V1.2.1 - - - 
 New Soundeffects. Leveling System With XP.
 

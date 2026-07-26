@@ -1,5 +1,3 @@
-// First user interaction helper for audio unlocking
-
 export const FirstClick = {
     initialized: false,
 

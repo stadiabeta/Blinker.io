@@ -49,7 +49,6 @@
             position: relative;
         }
 
-        /* Mobile background for screens smaller than 768px */
         @media (max-width: 768px) {
             body {
                 background-image: url('resources/backgrounds/mobile.png');
@@ -124,7 +123,6 @@
             }
         }
 
-        /* Header Styles */
         h1 {
             font-size: 3rem;
             font-weight: 900;
@@ -175,7 +173,6 @@
             transform: scale(0.95);
         }
 
-        /* Stats Badge */
         .stats-container {
             display: none;
             flex-direction: column;
@@ -270,7 +267,6 @@
             animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Visualizer Circle */
         .visualizer-wrapper {
             height: 200px;
             display: flex;
@@ -302,7 +298,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Orb Animations */
         .orb.active {
             background: radial-gradient(circle, var(--accent-green), var(--accent-lime));
             box-shadow: 0 0 30px var(--accent-glow), inset 0 0 15px rgba(255,255,255,0.5);
@@ -330,7 +325,6 @@
             z-index: 2;
         }
 
-        /* Controls */
         .controls {
             display: flex;
             flex-direction: column;
@@ -390,7 +384,10 @@
             cursor: not-allowed;
         }
 
-        /* Settings Modal */
+        .hidden {
+            display: none !important;
+        }
+
         .settings-modal {
             position: fixed;
             top: 0;
@@ -498,7 +495,6 @@
             font-size: 0.85rem;
         }
 
-        /* Keyframes */
         @keyframes pulse {
             0% { transform: scale(1); }
             100% { transform: scale(1.1); }
@@ -572,10 +568,10 @@
             <button class="btn btn-primary" id="mainHitBtn">Take a Hit (Hold or Click)</button>
             <button class="btn btn-secondary" id="randomHitBtn">Randomized Timed Hit</button>
             <button class="btn btn-secondary" id="blinkerBtn">Blinker Mode</button>
+            <button class="btn btn-secondary hidden" id="blinkerStopBtn">Stop Blink</button>
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div class="settings-modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -604,7 +600,8 @@
             </div>
 
             <div class="modal-version">
-                Version: <span id="versionDisplay">1.2.1</span></div>
+                Version: <span id="versionDisplay">1.3.1</span>
+            </div>
         </div>
     </div>
 
@@ -615,7 +612,6 @@
         import { FirstClick } from './scripts/firstClick.js';
         import { Levels } from './scripts/levels.js';
 
-        // DOM Elements
         const orb = document.getElementById('orb');
         const timerDisplay = document.getElementById('timerDisplay');
         const hitCounter = document.getElementById('hitCounter');
@@ -628,9 +624,11 @@
         const mainHitBtn = document.getElementById('mainHitBtn');
         const randomHitBtn = document.getElementById('randomHitBtn');
         const blinkerBtn = document.getElementById('blinkerBtn');
+        const blinkerStopBtn = document.getElementById('blinkerStopBtn');
 
-        // Game State
         let hits = 0;
+        let blinkerTimeoutId = null;
+        let blinkerResolve = null;
         let longestHitTime = 0;
         let totalPlaytimeSeconds = 0;
         let blinkersTaken = 0;
@@ -639,8 +637,6 @@
         let isHitActive = false;
         let isRandomActive = false;
         let isBlinkerActive = false;
-
-        // --- Functions ---
 
         function saveProgress() {
             localStorage.setItem('blinker-hits', hits);
@@ -747,6 +743,48 @@
             SFX.playExhale();
         }
 
+        function showBlinkerStopButton(show) {
+            if (!blinkerStopBtn) return;
+            blinkerStopBtn.classList.toggle('hidden', !show);
+            blinkerStopBtn.disabled = !show;
+        }
+
+        async function completeBlinkerMode(durationSeconds) {
+            stopTimer();
+            timerDisplay.textContent = `${durationSeconds.toFixed(2)}s`;
+
+            await Animations.triggerBlink(orb, 1);
+
+            incrementBlinkers();
+            addPlaytime(durationSeconds);
+            updateCounter();
+            Levels.addBlinkerXp();
+            updateLongestHit(durationSeconds);
+            updateAllStatsDisplays();
+
+            isBlinkerActive = false;
+            mainHitBtn.disabled = false;
+            randomHitBtn.disabled = false;
+            blinkerBtn.disabled = false;
+            blinkerBtn.textContent = 'Blinker Mode';
+            showBlinkerStopButton(false);
+
+            Animations.deactivateOrb(orb);
+            timerDisplay.textContent = '0.00s';
+        }
+
+        function stopBlinkerModeEarly() {
+            if (!isBlinkerActive) return;
+            if (blinkerTimeoutId !== null) {
+                clearTimeout(blinkerTimeoutId);
+                blinkerTimeoutId = null;
+            }
+            if (blinkerResolve) {
+                blinkerResolve();
+                blinkerResolve = null;
+            }
+        }
+
         function startHit() {
             if (isHitActive || isRandomActive || isBlinkerActive) return;
             
@@ -788,7 +826,6 @@
             blinkerBtn.disabled = true;
             randomHitBtn.textContent = 'Randomizing...';
             
-            // Generate a random duration between 1.5 and 4.0 seconds
             const randomDuration = (Math.random() * (4.0 - 1.5) + 1.5).toFixed(2);
             
             Animations.activateOrb(orb);
@@ -805,7 +842,6 @@
                 addPlaytime(parseFloat(randomDuration));
                 updateAllStatsDisplays();
 
-                // Reset buttons
                 isRandomActive = false;
                 mainHitBtn.disabled = false;
                 randomHitBtn.disabled = false;
@@ -823,69 +859,49 @@
             blinkerBtn.disabled = true;
             blinkerBtn.textContent = 'Blinking...';
 
-            // Generate a random blink duration between 8 and 12 seconds
             const blinkDuration = Math.random() * (12 - 8) + 8;
+            showBlinkerStopButton(true);
 
             Animations.activateOrb(orb);
             startTimer();
 
-            // Wait for the randomized blink duration
-            await new Promise(resolve => setTimeout(resolve, blinkDuration * 1000));
+            const blinkWaitPromise = new Promise(resolve => {
+                blinkerResolve = resolve;
+                blinkerTimeoutId = setTimeout(resolve, blinkDuration * 1000);
+            });
 
-            stopTimer();
-            timerDisplay.textContent = `${blinkDuration.toFixed(2)}s`;
+            await blinkWaitPromise;
+            blinkerTimeoutId = null;
+            blinkerResolve = null;
 
-            // Trigger the blink animation
-            await Animations.triggerBlink(orb, 1);
-            
-            incrementBlinkers();
-            addPlaytime(blinkDuration);
-            updateCounter();
-            Levels.addBlinkerXp();
-            updateLongestHit(blinkDuration);
-            updateAllStatsDisplays();
-
-            // Reset buttons
-            isBlinkerActive = false;
-            mainHitBtn.disabled = false;
-            randomHitBtn.disabled = false;
-            blinkerBtn.disabled = false;
-            blinkerBtn.textContent = 'Blinker Mode';
-
-            Animations.deactivateOrb(orb);
-            timerDisplay.textContent = '0.00s';
+            const actualDuration = (Date.now() - startTime) / 1000;
+            await completeBlinkerMode(actualDuration);
         }
 
-        // --- Event Listeners ---
-
-        // Desktop Mouse Events for Hold
         mainHitBtn.addEventListener('mousedown', startHit);
         window.addEventListener('mouseup', endHit);
 
-        // Mobile Touch Events for Hold
         mainHitBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             startHit();
         });
         window.addEventListener('touchend', endHit);
 
-        // Randomized Button
         randomHitBtn.addEventListener('click', triggerRandomHit);
-
-        // Blinker Button
         blinkerBtn.addEventListener('click', triggerBlinkerMode);
 
-        // Load saved progress on page load
+        if (blinkerStopBtn) {
+            blinkerStopBtn.addEventListener('click', stopBlinkerModeEarly);
+        }
+
         loadProgress();
 
-        // Initialize sound effects
         SFX.init();
         FirstClick.init(SFX);
 
-        // Initialize settings modal
         Settings.init(SFX);
-        // Update modal with initial stats
         Settings.updateStatsInModal(hits, longestHitTime, totalPlaytimeSeconds, blinkersTaken);
     </script>
+    <script src="scripts/age-gate.js"></script>
 </body>
 </html>
