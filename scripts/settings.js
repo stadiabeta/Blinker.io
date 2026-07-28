@@ -48,7 +48,7 @@ export const Settings = {
         },
         {
             id: 'tosBtn',
-            label: 'Terms of Service',
+            label: 'TOS',
             href: 'credits.txt',
             color: 'var(--accent-lime, #84cc16)',
             colorHover: '#222'

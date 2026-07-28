@@ -73,7 +73,7 @@
     overlay.innerHTML = `
         <div class="age-gate-modal">
             <h2>Age Verification</h2>
-            <p>This is a fictional simulation for entertainment purposes only. consumption isnt required or encouraged.</p>
+            <p>This is a fictional simulation for entertainment purposes only. consumption is required or encouraged.</p>
             <p>You must be <strong>over 18 years old</strong> to enter this site. By entering, you agree to our <a href="credits.txt" target="_blank">Terms of Service</a>.</p>
             <button class="age-gate-btn" id="ageConfirmBtn">I am Over 18 & Agree</button>
         </div>
